@@ -69,7 +69,21 @@ if (!_force) then {
     };
 };
 
-private _displays = ((uiNamespace getVariable "IGUI_displays") + [findDisplay IDD_MISSION]) select {_idd == ctrlIDD _x};
+private _hideInfo = _location != ANYWHERE
+    && {!isArray (missionConfigFile >> "showHUD")}
+    && {!GVAR(soldierVehicleWeaponInfo)};
+_show = _show && !_hideInfo;
+
+private _displays = (uiNamespace getVariable "IGUI_displays") + [findDisplay IDD_MISSION];
+// Limit unit info settings to standard HUD displays
+if (_hideInfo && {_idd == IDD_UNITINFO}) then {
+    _displays = ([
+        ["ACE_dlgSoldier"],
+        ["ACE_dlgVehicle", "ACE_dlgAircraft", "ACE_dlgUAV", "ACE_dlgSubmarine", "ACE_dlgShip", "ACE_dlgParachute"]
+    ] select (_location == VEHICLE_ONLY)) apply {uiNamespace getVariable [_x, displayNull]};
+};
+
+_displays = _displays select {!isNull _x && {_idd == ctrlIDD _x}};
 private _fade = parseNumber !_show;
 
 // Disable/Enable elements

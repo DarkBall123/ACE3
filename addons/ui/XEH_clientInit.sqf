@@ -20,9 +20,7 @@ GVAR(elementsSet) = createHashMap;
     ["ace_infoDisplayChanged", {
         // Selective UI Advanced
         // Defaults must be set in this EH to make sure controls are activated and advanced settings can be modified
-        {
-            [_x, missionNamespace getVariable (format [QGVAR(%1), _x]), false, !GVAR(allowSelectiveUI)] call FUNC(setAdvancedElement);
-        } forEach (keys GVAR(configCache));
+        [false] call FUNC(setElements);
 
         // Execute local event for when it's safe to modify UI through this API
         // infoDisplayChanged can execute multiple times, make sure it only happens once
