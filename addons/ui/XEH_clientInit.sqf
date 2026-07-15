@@ -15,6 +15,7 @@ GVAR(elementsSet) = createHashMap;
 ["CBA_settingsInitialized", {
     // Initial settings
     [false] call FUNC(setElements);
+    ["weapon", {[false] call FUNC(setElements)}, true] call CBA_fnc_addPlayerEventHandler;
 
     // On load and entering/exiting a vehicle
     ["ace_infoDisplayChanged", {

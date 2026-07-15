@@ -1,7 +1,7 @@
 #include "..\script_component.hpp"
 /*
  * Author: Jonpas
- * Sets visible elements of the UI.
+ * Sets basic visible elements of the UI using showHUD setter.
  *
  * Arguments:
  * 0: Show Hint <BOOL> (default: false)
@@ -27,9 +27,14 @@ if (isArray (missionConfigFile >> "showHUD")) exitWith {
     };
 };
 
+private _showInfo = GVAR(soldierVehicleWeaponInfo) || {
+    ACE_player call CBA_fnc_canUseWeapon
+    && {currentWeapon ACE_player isKindOf ["Binocular", configFile >> "CfgWeapons"]}
+};
+
 ["ui", [
     true,
-    true,
+    _showInfo,
     GVAR(vehicleRadar),
     GVAR(vehicleCompass),
     true,
