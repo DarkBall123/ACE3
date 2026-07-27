@@ -16,12 +16,13 @@
  * Public: No
  */
 
-#define PREVIEW_HEIGHT 0.05
-#define PREVIEW_ICON_SIZE 0.5
-#define PREVIEW_LINE_WIDTH 2
+#define PREVIEW_DEPTH 1
+#define PREVIEW_HEIGHT 0.1
+#define PREVIEW_ICON_SIZE 1.25
+#define PREVIEW_LINE_WIDTH 6
 #define PREVIEW_ICON "\a3\ui_f\data\IGUI\Cfg\Cursors\select_target_ca.paa"
-#define PREVIEW_ICON_COLOR [0, 0, 1, 1]
-#define PREVIEW_LINE_COLOR [0, 0.6, 1, 0.5]
+#define PREVIEW_DEPTH_COLOR [1, 0.2, 0, 1]
+#define PREVIEW_SURFACE_COLOR [0, 0.8, 1, 1]
 
 params ["_unit", "_trenchClass"];
 
@@ -101,28 +102,62 @@ GVAR(digPFH) = [{
         _terrainCells pushBackUnique [_vertexX, _vertexY - _cellSize];
         _terrainCells pushBackUnique [_vertexX - _cellSize, _vertexY];
         _terrainCells pushBackUnique [_vertexX, _vertexY];
-
-        drawIcon3D [PREVIEW_ICON, PREVIEW_ICON_COLOR, _x + [PREVIEW_HEIGHT], PREVIEW_ICON_SIZE, PREVIEW_ICON_SIZE, 0, ""];
     } forEach _terrainVertices;
 
     {
         _x params ["_cellX", "_cellY"];
+        private _bottomLeftChanged = [_cellX, _cellY] in _terrainVertices;
+        private _topLeftChanged = [_cellX, _cellY + _cellSize] in _terrainVertices;
+        private _bottomRightChanged = [_cellX + _cellSize, _cellY] in _terrainVertices;
+        private _topRightChanged = [_cellX + _cellSize, _cellY + _cellSize] in _terrainVertices;
+
         private _bottomLeft = [_cellX, _cellY, PREVIEW_HEIGHT];
         private _topLeft = [_cellX, _cellY + _cellSize, PREVIEW_HEIGHT];
         private _bottomRight = [_cellX + _cellSize, _cellY, PREVIEW_HEIGHT];
         private _topRight = [_cellX + _cellSize, _cellY + _cellSize, PREVIEW_HEIGHT];
 
-        drawLine3D [_bottomLeft, _topLeft, PREVIEW_LINE_COLOR, PREVIEW_LINE_WIDTH];
-        drawLine3D [_bottomLeft, _bottomRight, PREVIEW_LINE_COLOR, PREVIEW_LINE_WIDTH];
-        drawLine3D [_topLeft, _bottomRight, PREVIEW_LINE_COLOR, PREVIEW_LINE_WIDTH];
-
-        if !([_cellX + _cellSize, _cellY] in _terrainCells) then {
-            drawLine3D [_bottomRight, _topRight, PREVIEW_LINE_COLOR, PREVIEW_LINE_WIDTH];
+        if (_bottomLeftChanged) then {
+            _bottomLeft set [2, PREVIEW_HEIGHT + PREVIEW_DEPTH];
         };
-        if !([_cellX, _cellY + _cellSize] in _terrainCells) then {
-            drawLine3D [_topLeft, _topRight, PREVIEW_LINE_COLOR, PREVIEW_LINE_WIDTH];
+        if (_topLeftChanged) then {
+            _topLeft set [2, PREVIEW_HEIGHT + PREVIEW_DEPTH];
+        };
+        if (_bottomRightChanged) then {
+            _bottomRight set [2, PREVIEW_HEIGHT + PREVIEW_DEPTH];
+        };
+        if (_topRightChanged) then {
+            _topRight set [2, PREVIEW_HEIGHT + PREVIEW_DEPTH];
+        };
+
+        if (_bottomLeftChanged || {_topLeftChanged} || {_bottomRightChanged}) then {
+            drawLine3D [_bottomLeft, _topLeft, PREVIEW_SURFACE_COLOR, PREVIEW_LINE_WIDTH];
+            drawLine3D [_bottomLeft, _bottomRight, PREVIEW_SURFACE_COLOR, PREVIEW_LINE_WIDTH];
+            drawLine3D [_topLeft, _bottomRight, PREVIEW_SURFACE_COLOR, PREVIEW_LINE_WIDTH];
+        };
+        if (_topLeftChanged || {_topRightChanged} || {_bottomRightChanged}) then {
+            drawLine3D [_topLeft, _topRight, PREVIEW_SURFACE_COLOR, PREVIEW_LINE_WIDTH];
+            drawLine3D [_topRight, _bottomRight, PREVIEW_SURFACE_COLOR, PREVIEW_LINE_WIDTH];
+            drawLine3D [_topLeft, _bottomRight, PREVIEW_SURFACE_COLOR, PREVIEW_LINE_WIDTH];
         };
     } forEach _terrainCells;
+
+    {
+        private _surface = _x + [PREVIEW_HEIGHT];
+        private _depth = _x + [PREVIEW_HEIGHT + PREVIEW_DEPTH];
+        drawLine3D [_surface, _depth, PREVIEW_DEPTH_COLOR, PREVIEW_LINE_WIDTH];
+        drawIcon3D [
+            PREVIEW_ICON,
+            PREVIEW_DEPTH_COLOR,
+            _depth,
+            PREVIEW_ICON_SIZE,
+            PREVIEW_ICON_SIZE,
+            0,
+            format ["-%1 m", PREVIEW_DEPTH toFixed 2],
+            2,
+            0.05,
+            "RobotoCondensedBold"
+        ];
+    } forEach _terrainVertices;
 
     _basePos set [2, (_basePos select 2) + _minzoffset + _offset];
     TRACE_2("",_minzoffset,_offset);
