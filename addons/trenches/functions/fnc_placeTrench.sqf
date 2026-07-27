@@ -16,6 +16,13 @@
  * Public: No
  */
 
+#define PREVIEW_HEIGHT 0.05
+#define PREVIEW_ICON_SIZE 0.5
+#define PREVIEW_LINE_WIDTH 2
+#define PREVIEW_ICON "\a3\ui_f\data\IGUI\Cfg\Cursors\select_target_ca.paa"
+#define PREVIEW_ICON_COLOR [0, 0, 1, 1]
+#define PREVIEW_LINE_COLOR [0, 0.6, 1, 0.5]
+
 params ["_unit", "_trenchClass"];
 
 //Load trench data
@@ -40,9 +47,11 @@ GVAR(trench) = _trench;
 
 GVAR(digDirection) = 0;
 
+getTerrainInfo params ["", "", "_cellSize"];
+
 // pfh that runs while the dig is in progress
 GVAR(digPFH) = [{
-    (_this select 0) params ["_unit", "_trench"];
+    (_this select 0) params ["_unit", "_trench", "_cellSize"];
 
     // Cancel if the helper object is gone
     if (isNull _trench) exitWith {
@@ -68,11 +77,13 @@ GVAR(digPFH) = [{
     // Stick the trench to the ground
     _basePos set [2, getTerrainHeightASL _basePos];
     private _minzoffset = 0;
+    private _terrainVertices = [];
     for [{private _ix = -_dx/2},{_ix <= _dx/2},{_ix = _ix + _dx/3}] do {
         for [{private _iy = -_dy/2},{_iy <= _dy/2},{_iy = _iy + _dy/3}] do {
             private _pos = _basePos vectorAdd (_v2 vectorMultiply _ix)
                                     vectorAdd (_v1 vectorMultiply _iy);
             _minzoffset = _minzoffset min ((getTerrainHeightASL _pos) - (_pos select 2));
+            _terrainVertices pushBackUnique ((_pos select [0, 2]) apply {_cellSize * round (_x / _cellSize)});
             #ifdef DEBUG_MODE_FULL
                 _pos set [2, getTerrainHeightASL _pos];
                 private _pos2 = +_pos;
@@ -81,13 +92,45 @@ GVAR(digPFH) = [{
             #endif
         };
     };
+
+    // A changed heightmap vertex affects the four surrounding terrain cells
+    private _terrainCells = [];
+    {
+        _x params ["_vertexX", "_vertexY"];
+        _terrainCells pushBackUnique [_vertexX - _cellSize, _vertexY - _cellSize];
+        _terrainCells pushBackUnique [_vertexX, _vertexY - _cellSize];
+        _terrainCells pushBackUnique [_vertexX - _cellSize, _vertexY];
+        _terrainCells pushBackUnique [_vertexX, _vertexY];
+
+        drawIcon3D [PREVIEW_ICON, PREVIEW_ICON_COLOR, _x + [PREVIEW_HEIGHT], PREVIEW_ICON_SIZE, PREVIEW_ICON_SIZE, 0, ""];
+    } forEach _terrainVertices;
+
+    {
+        _x params ["_cellX", "_cellY"];
+        private _bottomLeft = [_cellX, _cellY, PREVIEW_HEIGHT];
+        private _topLeft = [_cellX, _cellY + _cellSize, PREVIEW_HEIGHT];
+        private _bottomRight = [_cellX + _cellSize, _cellY, PREVIEW_HEIGHT];
+        private _topRight = [_cellX + _cellSize, _cellY + _cellSize, PREVIEW_HEIGHT];
+
+        drawLine3D [_bottomLeft, _topLeft, PREVIEW_LINE_COLOR, PREVIEW_LINE_WIDTH];
+        drawLine3D [_bottomLeft, _bottomRight, PREVIEW_LINE_COLOR, PREVIEW_LINE_WIDTH];
+        drawLine3D [_topLeft, _bottomRight, PREVIEW_LINE_COLOR, PREVIEW_LINE_WIDTH];
+
+        if !([_cellX + _cellSize, _cellY] in _terrainCells) then {
+            drawLine3D [_bottomRight, _topRight, PREVIEW_LINE_COLOR, PREVIEW_LINE_WIDTH];
+        };
+        if !([_cellX, _cellY + _cellSize] in _terrainCells) then {
+            drawLine3D [_topLeft, _topRight, PREVIEW_LINE_COLOR, PREVIEW_LINE_WIDTH];
+        };
+    } forEach _terrainCells;
+
     _basePos set [2, (_basePos select 2) + _minzoffset + _offset];
     TRACE_2("",_minzoffset,_offset);
     _trench setPosASL _basePos;
     _trench setVectorDirAndUp [_v1, _v3];
     GVAR(trenchPos) = _basePos;
 
-}, 0, [_unit, _trench]] call CBA_fnc_addPerFrameHandler;
+}, 0, [_unit, _trench, _cellSize]] call CBA_fnc_addPerFrameHandler;
 
 // add mouse button action and hint
 [localize LSTRING(ConfirmDig), localize LSTRING(CancelDig), localize LSTRING(ScrollAction)] call EFUNC(interaction,showMouseHint);
