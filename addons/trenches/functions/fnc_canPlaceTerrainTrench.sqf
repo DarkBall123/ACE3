@@ -30,13 +30,4 @@ private _invalidVertex = _vertices findIf {
 };
 if (_invalidVertex != -1) exitWith {false};
 
-private _terrainTrenches = nearestObjects [
-    _vertices select 0,
-    ["ACE_TerrainTrench_Base"],
-    2 * _cellSize,
-    true
-];
-
-(_terrainTrenches findIf {
-    (_vertices arrayIntersect (_x getVariable [QGVAR(terrainVertices), []])) isNotEqualTo []
-}) == -1
+true

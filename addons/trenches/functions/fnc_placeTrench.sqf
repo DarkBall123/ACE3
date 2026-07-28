@@ -22,7 +22,6 @@
 #define PREVIEW_INVALID_COLOR [1, 0.15, 0.15, 1]
 #define PREVIEW_VALID_TEXTURE "#(argb,8,8,3)color(1,1,1,0.2,ca)"
 #define PREVIEW_INVALID_TEXTURE "#(argb,8,8,3)color(1,0.05,0.05,0.3,ca)"
-#define VALIDATION_INTERVAL 0.5
 
 params ["_unit", "_trenchClass"];
 
@@ -84,8 +83,7 @@ GVAR(digPFH) = [{
         "_terrainVertexCount",
         "_terrainDepth",
         "_cellSize",
-        "_lastVertices",
-        "_nextValidation"
+        "_lastVertices"
     ];
 
     // Cancel if the place is no longer suitable
@@ -103,63 +101,53 @@ GVAR(digPFH) = [{
         ];
 
         private _verticesChanged = _terrainVertices isNotEqualTo _lastVertices;
-        if (_verticesChanged || {CBA_missionTime >= _nextValidation}) then {
-            private _wasValid = GVAR(trenchPlacementValid);
+        if (_verticesChanged) then {
             GVAR(trenchPlacementValid) = [_terrainVertices, _cellSize] call FUNC(canPlaceTerrainTrench);
             (_this select 0) set [5, _terrainVertices];
-            (_this select 0) set [6, CBA_missionTime + VALIDATION_INTERVAL];
 
             private _texture = [
                 PREVIEW_INVALID_TEXTURE,
                 PREVIEW_VALID_TEXTURE
             ] select GVAR(trenchPlacementValid);
 
-            if (_verticesChanged) then {
-                deleteVehicle GVAR(terrainPreview);
-                GVAR(terrainPreview) = [];
+            deleteVehicle GVAR(terrainPreview);
+            GVAR(terrainPreview) = [];
 
-                private _terrainCells = [];
-                {
-                    _x params ["_vertexX", "_vertexY"];
-                    _terrainCells pushBackUnique [_vertexX - _cellSize, _vertexY - _cellSize];
-                    _terrainCells pushBackUnique [_vertexX, _vertexY - _cellSize];
-                    _terrainCells pushBackUnique [_vertexX - _cellSize, _vertexY];
-                    _terrainCells pushBackUnique [_vertexX, _vertexY];
-                } forEach _terrainVertices;
+            private _terrainCells = [];
+            {
+                _x params ["_vertexX", "_vertexY"];
+                _terrainCells pushBackUnique [_vertexX - _cellSize, _vertexY - _cellSize];
+                _terrainCells pushBackUnique [_vertexX, _vertexY - _cellSize];
+                _terrainCells pushBackUnique [_vertexX - _cellSize, _vertexY];
+                _terrainCells pushBackUnique [_vertexX, _vertexY];
+            } forEach _terrainVertices;
 
-                private _previewSize = _cellSize / 2;
-                {
-                    _x params ["_cellX", "_cellY"];
-                    for "_xIndex" from 0 to 1 do {
-                        for "_yIndex" from 0 to 1 do {
-                            private _previewPos = [
-                                _cellX + (_xIndex + 0.5) * _previewSize,
-                                _cellY + (_yIndex + 0.5) * _previewSize,
-                                0
-                            ];
-                            _previewPos set [2, getTerrainHeightASL _previewPos];
+            private _previewSize = _cellSize / 2;
+            {
+                _x params ["_cellX", "_cellY"];
+                for "_xIndex" from 0 to 1 do {
+                    for "_yIndex" from 0 to 1 do {
+                        private _previewPos = [
+                            _cellX + (_xIndex + 0.5) * _previewSize,
+                            _cellY + (_yIndex + 0.5) * _previewSize,
+                            0
+                        ];
+                        _previewPos set [2, getTerrainHeightASL _previewPos];
 
-                            private _surfaceNormal = surfaceNormal _previewPos;
-                            _previewPos = _previewPos vectorAdd (_surfaceNormal vectorMultiply PREVIEW_HEIGHT);
+                        private _surfaceNormal = surfaceNormal _previewPos;
+                        _previewPos = _previewPos vectorAdd (_surfaceNormal vectorMultiply PREVIEW_HEIGHT);
 
-                            private _preview = createSimpleObject ["UserTexture1m_F", _previewPos, true];
-                            _preview setVectorDirAndUp [
-                                _surfaceNormal vectorMultiply -1,
-                                _surfaceNormal vectorCrossProduct [1, 0, 0]
-                            ];
-                            _preview setObjectScale (_previewSize * 1.02);
-                            _preview setObjectTexture [0, _texture];
-                            GVAR(terrainPreview) pushBack _preview;
-                        };
+                        private _preview = createSimpleObject ["UserTexture1m_F", _previewPos, true];
+                        _preview setVectorDirAndUp [
+                            _surfaceNormal vectorMultiply -1,
+                            _surfaceNormal vectorCrossProduct [1, 0, 0]
+                        ];
+                        _preview setObjectScale (_previewSize * 1.02);
+                        _preview setObjectTexture [0, _texture];
+                        GVAR(terrainPreview) pushBack _preview;
                     };
-                } forEach _terrainCells;
-            } else {
-                if (_wasValid != GVAR(trenchPlacementValid)) then {
-                    {
-                        _x setObjectTexture [0, _texture];
-                    } forEach GVAR(terrainPreview);
                 };
-            };
+            } forEach _terrainCells;
         };
 
         GVAR(trenchPos) = _terrainCenter;
@@ -216,7 +204,7 @@ GVAR(digPFH) = [{
     _trench setVectorDirAndUp [_v1, _v3];
     GVAR(trenchPos) = _basePos;
 
-}, 0, [_unit, _trench, _terrainVertexCount, _terrainDepth, _cellSize, [], 0]] call CBA_fnc_addPerFrameHandler;
+}, 0, [_unit, _trench, _terrainVertexCount, _terrainDepth, _cellSize, []]] call CBA_fnc_addPerFrameHandler;
 
 // add mouse button action and hint
 [localize LSTRING(ConfirmDig), localize LSTRING(CancelDig), localize LSTRING(ScrollAction)] call EFUNC(interaction,showMouseHint);
