@@ -88,6 +88,24 @@
             <Turkish>Kazmayı Iptal Et</Turkish>
             <Ukrainian>Скасувати копання</Ukrainian>
         </Key>
+        <Key ID="STR_ACE_Trenches_CannotDigHere">
+            <English>Cannot dig here</English>
+            <Czech>Zde nelze kopat</Czech>
+            <French>Impossible de creuser ici.</French>
+            <Spanish>No se puede cavar aquí</Spanish>
+            <Italian>Non è possibile scavare qui</Italian>
+            <Polish>Nie można tu kopać</Polish>
+            <Portuguese>Não é possível cavar aqui</Portuguese>
+            <Russian>Здесь нельзя копать</Russian>
+            <German>Hier kann nicht gegraben werden</German>
+            <Korean>여기에는 참호를 팔 수 없습니다</Korean>
+            <Japanese>ここでは掘れません</Japanese>
+            <Chinese>無法在此挖掘</Chinese>
+            <Chinesesimp>无法在此挖掘</Chinesesimp>
+            <Turkish>Burada kazı yapılamaz</Turkish>
+            <Hungarian>Itt nem lehet ásni</Hungarian>
+            <Ukrainian>Тут не можна копати</Ukrainian>
+        </Key>
         <Key ID="STR_ACE_Trenches_Category">
             <English>ACE Trenches</English>
             <French>ACE Tranchées</French>

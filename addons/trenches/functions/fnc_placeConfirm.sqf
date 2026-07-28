@@ -17,6 +17,10 @@
 
 params ["_unit"];
 
+if (GVAR(terrainPlacement) && {!GVAR(trenchPlacementValid)}) exitWith {
+    [localize LSTRING(CannotDigHere)] call EFUNC(common,displayTextStructured);
+};
+
 // enable running again
 [_unit, "forceWalk", QUOTE(ADDON), false] call EFUNC(common,statusEffect_set);
 [_unit, "blockThrow", QUOTE(ADDON), false] call EFUNC(common,statusEffect_set);
@@ -32,8 +36,16 @@ call EFUNC(interaction,hideMouseHint);
 
 _unit setVariable [QGVAR(isPlacing), false, true];
 
+if (GVAR(terrainPlacement)) exitWith {
+    [
+        QGVAR(createTerrainTrench),
+        [_unit, GVAR(trenchClass), GVAR(trenchPos), GVAR(digDirection)]
+    ] call CBA_fnc_serverEvent;
+    GVAR(trench) = objNull;
+    GVAR(terrainPlacement) = false;
+};
+
 // Delete placement dummy and create real trench
-params ["_unit"];
 if (isNull GVAR(trench)) exitWith {};
 
 deleteVehicle GVAR(trench);

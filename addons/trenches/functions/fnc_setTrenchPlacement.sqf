@@ -26,6 +26,11 @@ params ["_unit", "_trench", "_trenchId", "_pos", "_vecDirAndUp", "_progress"];
 // We use an uid to avoid any chance of an older trench being raised when a new one is built
 if (_unit getVariable [QGVAR(isDiggingId), -1] != _trenchId) exitWith {};
 
+if (_trench isKindOf "ACE_TerrainTrench_Base") exitWith {
+    _trench setVariable [QGVAR(progress), _progress];
+    [QGVAR(setTerrainTrenchProgress), [_trench, _progress]] call CBA_fnc_serverEvent;
+};
+
 _trench setPosASL _pos;
 _trench setVectorDirAndUp _vecDirAndUp;
 

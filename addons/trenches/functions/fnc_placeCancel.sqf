@@ -37,3 +37,5 @@ call EFUNC(interaction,hideMouseHint);
 [_unit, "DefaultAction", _unit getVariable [QGVAR(Dig), -1]] call EFUNC(common,removeActionEventHandler);
 
 _unit setVariable [QGVAR(isPlacing), false, true];
+GVAR(terrainPlacement) = false;
+GVAR(trenchPlacementValid) = false;

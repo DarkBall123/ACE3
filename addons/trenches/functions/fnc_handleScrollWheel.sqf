@@ -19,6 +19,14 @@ if (GVAR(digPFH) == -1) exitWith {false};
 
 params ["_scroll"];
 
-GVAR(digDirection) = GVAR(digDirection) + (_scroll * 5);
+GVAR(digDirection) = if (GVAR(terrainPlacement)) then {
+    (
+        GVAR(digDirection)
+        + ([-TERRAIN_DIRECTION_STEP, TERRAIN_DIRECTION_STEP] select (_scroll > 0))
+        + 4 * TERRAIN_DIRECTION_STEP
+    ) mod (4 * TERRAIN_DIRECTION_STEP)
+} else {
+    GVAR(digDirection) + (_scroll * 5)
+};
 
 true

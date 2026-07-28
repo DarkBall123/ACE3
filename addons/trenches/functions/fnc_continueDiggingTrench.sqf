@@ -62,6 +62,10 @@ private _fnc_onFailure = {
     private _progress = _trench getVariable [QGVAR(progress), 0];
     _trench setVariable [QGVAR(progress), _progress, true];
 
+    if (_trench isKindOf "ACE_TerrainTrench_Base" && {_progress <= 0}) then {
+        deleteVehicle _trench;
+    };
+
     // Reset animation
     [_unit, "", 1] call EFUNC(common,doAnimation);
 };
@@ -72,7 +76,9 @@ private _fnc_condition = {
 [(_digTimeLeft + 0.5), [_unit, _trench], _fnc_onFinish, _fnc_onFailure, localize LSTRING(DiggingTrench), _fnc_condition] call EFUNC(common,progressBar);
 
 if(_actualProgress == 0) then {
-    [_unit, _trench, _trenchId, _basePos vectorDiff [0, 0, 1.0], _vecDirAndUp, _actualProgress] call FUNC(setTrenchPlacement);
+    if !(_trench isKindOf "ACE_TerrainTrench_Base") then {
+        [_unit, _trench, _trenchId, _basePos vectorDiff [0, 0, 1.0], _vecDirAndUp, _actualProgress] call FUNC(setTrenchPlacement);
+    };
 
     //Remove grass
     {

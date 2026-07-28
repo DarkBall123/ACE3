@@ -4,6 +4,9 @@ if (isServer) then {
     // Cancel dig on hard disconnection. Function is identical to killed
     addMissionEventHandler ["HandleDisconnect", {call FUNC(handleKilled)}];
 
+    [QGVAR(createTerrainTrench), LINKFUNC(createTerrainTrench)] call CBA_fnc_addEventHandler;
+    [QGVAR(setTerrainTrenchProgress), LINKFUNC(setTerrainTrenchProgress)] call CBA_fnc_addEventHandler;
+
     // Wrapper for blockTrench_place, on failure send hint back to source
     [QGVAR(layTrenchline), {
         params [["_source", objNull, [objNull]], ["_args", [], [[]]]];
@@ -18,10 +21,23 @@ if (isServer) then {
 
 if (!hasInterface) exitWith {};
 
+[QGVAR(terrainTrenchCreated), {
+    params ["_unit", "_trench"];
+    if (_unit != ACE_player) exitWith {};
+
+    if (isNull _trench) exitWith {
+        [localize LSTRING(CannotDigHere)] call EFUNC(common,displayTextStructured);
+    };
+
+    [_trench, _unit] call FUNC(continueDiggingTrench);
+}] call CBA_fnc_addEventHandler;
+
 GVAR(trenchId) = 0;
 GVAR(trench) = objNull;
 GVAR(digPFH) = -1;
 GVAR(digDirection) = 0;
+GVAR(terrainPlacement) = false;
+GVAR(trenchPlacementValid) = false;
 
 // Cancel dig sandbag if interact menu opened
 ["ace_interactMenuOpened", {[ACE_player] call FUNC(handleInteractMenuOpened)}] call CBA_fnc_addEventHandler;

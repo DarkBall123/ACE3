@@ -4,7 +4,7 @@ class CBA_Extended_EventHandlers;
         class ACE_MainActions { \
             displayName = ECSTRING(interaction,MainAction); \
             selection = ""; \
-            distance = 3; \
+            distance = TRENCH_ACTION_DISTANCE; \
             condition = QUOTE(true); \
             class ACE_ContinueDiggingTrench { \
                 displayName = CSTRING(ContinueDiggingTrench); \
@@ -20,6 +20,25 @@ class CBA_Extended_EventHandlers;
                 displayName = CSTRING(CamouflageTrench); \
                 condition = QUOTE([ARR_2(_target,_player)] call FUNC(canCamouflageTrench)); \
                 statement = QUOTE([ARR_2(_target,_player)] call FUNC(camouflageTrench)); \
+            }; \
+        }; \
+    }
+
+#define ACE_TERRAIN_TRENCH_ACTIONS class ACE_Actions { \
+        class ACE_MainActions { \
+            displayName = ECSTRING(interaction,MainAction); \
+            selection = ""; \
+            distance = TRENCH_ACTION_DISTANCE; \
+            condition = QUOTE(true); \
+            class ACE_ContinueDiggingTrench { \
+                displayName = CSTRING(ContinueDiggingTrench); \
+                condition = QUOTE([ARR_2(_target,_player)] call FUNC(canContinueDiggingTrench)); \
+                statement = QUOTE([ARR_2(_target,_player)] call FUNC(continueDiggingTrench)); \
+            }; \
+            class ACE_RemoveTrench { \
+                displayName = CSTRING(RemoveEnvelope); \
+                condition = QUOTE([ARR_2(_target,_player)] call FUNC(canRemoveTrench)); \
+                statement = QUOTE([ARR_2(_target,_player)] call FUNC(removeTrench)); \
             }; \
         }; \
     }
@@ -62,6 +81,8 @@ class CfgVehicles {
         GVAR(removalDuration) = QGVAR(smallEnvelopeRemoveDuration);
         GVAR(noGeoClass) = "ACE_envelope_small_NoGeo";
         GVAR(placementData)[] = {2,3,0.35};
+        GVAR(terrainClass) = "ACE_TerrainTrench_Small";
+        GVAR(terrainVertexCount) = 1;
         GVAR(grassCuttingPoints)[] = {{0,-0.5,0}};
         ACE_TRENCHES_ACTIONS;
         class EventHandlers {
@@ -80,6 +101,8 @@ class CfgVehicles {
         GVAR(removalDuration) = QGVAR(bigEnvelopeRemoveDuration);
         GVAR(noGeoClass) = "ACE_envelope_big_NoGeo";
         GVAR(placementData)[] = {6,1.1,0.20};
+        GVAR(terrainClass) = "ACE_TerrainTrench_Big";
+        GVAR(terrainVertexCount) = 2;
         GVAR(grassCuttingPoints)[] = {{-1.5,-1,0},{1.5,-1,0}};
         ACE_TRENCHES_ACTIONS;
         class EventHandlers {
@@ -98,6 +121,28 @@ class CfgVehicles {
         scope = 1;
         //@todo: replace by a no geo model
         model = QPATHTOEF(apl,ace_envelope_big4_nogeo.p3d);
+    };
+
+    class ACE_LogicDummy;
+    class ACE_TerrainTrench_Base: ACE_LogicDummy {
+        scope = 1;
+        scopeCurator = 0;
+        XEH_ENABLED;
+        ACE_TERRAIN_TRENCH_ACTIONS;
+    };
+    class ACE_TerrainTrench_Small: ACE_TerrainTrench_Base {
+        displayName = CSTRING(EnvelopeSmallName);
+        GVAR(diggingDuration) = QGVAR(smallEnvelopeDigDuration);
+        GVAR(removalDuration) = QGVAR(smallEnvelopeRemoveDuration);
+        GVAR(terrainDepth) = 0.6;
+        GVAR(grassCuttingPoints)[] = {{0, 0, 0}};
+    };
+    class ACE_TerrainTrench_Big: ACE_TerrainTrench_Base {
+        displayName = CSTRING(EnvelopeBigName);
+        GVAR(diggingDuration) = QGVAR(bigEnvelopeDigDuration);
+        GVAR(removalDuration) = QGVAR(bigEnvelopeRemoveDuration);
+        GVAR(terrainDepth) = 1;
+        GVAR(grassCuttingPoints)[] = {{0, -1.5, 0}, {0, 1.5, 0}};
     };
 
     class Box_NATO_Support_F;
