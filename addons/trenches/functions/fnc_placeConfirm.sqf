@@ -28,6 +28,8 @@ if (GVAR(terrainPlacement) && {!GVAR(trenchPlacementValid)}) exitWith {
 // remove dig pfh
 [GVAR(digPFH)] call CBA_fnc_removePerFrameHandler;
 GVAR(digPFH) = -1;
+deleteVehicle GVAR(terrainPreview);
+GVAR(terrainPreview) = [];
 
 // remove mouse button actions
 call EFUNC(interaction,hideMouseHint);
@@ -43,6 +45,7 @@ if (GVAR(terrainPlacement)) exitWith {
     ] call CBA_fnc_serverEvent;
     GVAR(trench) = objNull;
     GVAR(terrainPlacement) = false;
+    GVAR(trenchPlacementValid) = false;
 };
 
 // Delete placement dummy and create real trench

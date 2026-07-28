@@ -42,7 +42,7 @@ private _fnc_failure = {
 };
 
 if (
-    !(_unit call FUNC(hasEntrenchingTool))
+    !(_unit call FUNC(canDigTrench))
     || {count _terrainProperties != 2}
     || {!isClass _terrainConfig}
     || {!(_vertexCount in [1, 2])}
@@ -59,7 +59,7 @@ getTerrainInfo params ["", "", "_cellSize"];
 
 if (
     _unit distance2D _center > _cellSize + TRENCH_ACTION_DISTANCE
-    || {!([_unit, _vertices, _cellSize] call FUNC(canPlaceTerrainTrench))}
+    || {!([_vertices, _cellSize] call FUNC(canPlaceTerrainTrench))}
 ) exitWith {
     call _fnc_failure;
 };

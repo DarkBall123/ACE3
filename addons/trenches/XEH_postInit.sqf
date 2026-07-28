@@ -38,6 +38,7 @@ GVAR(digPFH) = -1;
 GVAR(digDirection) = 0;
 GVAR(terrainPlacement) = false;
 GVAR(trenchPlacementValid) = false;
+GVAR(terrainPreview) = [];
 
 // Cancel dig sandbag if interact menu opened
 ["ace_interactMenuOpened", {[ACE_player] call FUNC(handleInteractMenuOpened)}] call CBA_fnc_addEventHandler;

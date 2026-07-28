@@ -16,14 +16,18 @@
  * Public: No
  */
 
-#define PREVIEW_HEIGHT 0.1
-#define PREVIEW_ICON_SIZE 0.5
-#define PREVIEW_ICON "\a3\ui_f\data\map\markers\military\dot_CA.paa"
-#define PREVIEW_VALID_COLOR [1, 1, 1, 0.9]
-#define PREVIEW_INVALID_COLOR [1, 0.15, 0.15, 0.95]
+#define PREVIEW_HEIGHT 0.04
+#define PREVIEW_TEXT_HEIGHT 0.25
+#define PREVIEW_VALID_COLOR [1, 1, 1, 1]
+#define PREVIEW_INVALID_COLOR [1, 0.15, 0.15, 1]
+#define PREVIEW_VALID_TEXTURE "#(argb,8,8,3)color(1,1,1,0.2,ca)"
+#define PREVIEW_INVALID_TEXTURE "#(argb,8,8,3)color(1,0.05,0.05,0.3,ca)"
 #define VALIDATION_INTERVAL 0.5
 
 params ["_unit", "_trenchClass"];
+
+deleteVehicle GVAR(terrainPreview);
+GVAR(terrainPreview) = [];
 
 private _trenchConfig = configFile >> "CfgVehicles" >> _trenchClass;
 GVAR(trenchClass) = _trenchClass;
@@ -98,30 +102,82 @@ GVAR(digPFH) = [{
             "_terrainDirection"
         ];
 
-        if (_terrainVertices isNotEqualTo _lastVertices || {CBA_missionTime >= _nextValidation}) then {
-            GVAR(trenchPlacementValid) = [_unit, _terrainVertices, _cellSize] call FUNC(canPlaceTerrainTrench);
+        private _verticesChanged = _terrainVertices isNotEqualTo _lastVertices;
+        if (_verticesChanged || {CBA_missionTime >= _nextValidation}) then {
+            private _wasValid = GVAR(trenchPlacementValid);
+            GVAR(trenchPlacementValid) = [_terrainVertices, _cellSize] call FUNC(canPlaceTerrainTrench);
             (_this select 0) set [5, _terrainVertices];
             (_this select 0) set [6, CBA_missionTime + VALIDATION_INTERVAL];
+
+            private _texture = [
+                PREVIEW_INVALID_TEXTURE,
+                PREVIEW_VALID_TEXTURE
+            ] select GVAR(trenchPlacementValid);
+
+            if (_verticesChanged) then {
+                deleteVehicle GVAR(terrainPreview);
+                GVAR(terrainPreview) = [];
+
+                private _terrainCells = [];
+                {
+                    _x params ["_vertexX", "_vertexY"];
+                    _terrainCells pushBackUnique [_vertexX - _cellSize, _vertexY - _cellSize];
+                    _terrainCells pushBackUnique [_vertexX, _vertexY - _cellSize];
+                    _terrainCells pushBackUnique [_vertexX - _cellSize, _vertexY];
+                    _terrainCells pushBackUnique [_vertexX, _vertexY];
+                } forEach _terrainVertices;
+
+                private _previewSize = _cellSize / 2;
+                {
+                    _x params ["_cellX", "_cellY"];
+                    for "_xIndex" from 0 to 1 do {
+                        for "_yIndex" from 0 to 1 do {
+                            private _previewPos = [
+                                _cellX + (_xIndex + 0.5) * _previewSize,
+                                _cellY + (_yIndex + 0.5) * _previewSize,
+                                0
+                            ];
+                            _previewPos set [2, getTerrainHeightASL _previewPos];
+
+                            private _surfaceNormal = surfaceNormal _previewPos;
+                            _previewPos = _previewPos vectorAdd (_surfaceNormal vectorMultiply PREVIEW_HEIGHT);
+
+                            private _preview = createSimpleObject ["UserTexture1m_F", _previewPos, true];
+                            _preview setVectorDirAndUp [
+                                _surfaceNormal vectorMultiply -1,
+                                _surfaceNormal vectorCrossProduct [1, 0, 0]
+                            ];
+                            _preview setObjectScale (_previewSize * 1.02);
+                            _preview setObjectTexture [0, _texture];
+                            GVAR(terrainPreview) pushBack _preview;
+                        };
+                    };
+                } forEach _terrainCells;
+            } else {
+                if (_wasValid != GVAR(trenchPlacementValid)) then {
+                    {
+                        _x setObjectTexture [0, _texture];
+                    } forEach GVAR(terrainPreview);
+                };
+            };
         };
 
         GVAR(trenchPos) = _terrainCenter;
         GVAR(digDirection) = _terrainDirection;
 
         private _color = [PREVIEW_INVALID_COLOR, PREVIEW_VALID_COLOR] select GVAR(trenchPlacementValid);
-        {
-            drawIcon3D [
-                PREVIEW_ICON,
-                _color,
-                _x + [PREVIEW_HEIGHT],
-                PREVIEW_ICON_SIZE,
-                PREVIEW_ICON_SIZE,
-                0,
-                format ["-%1 m", _terrainDepth toFixed 2],
-                2,
-                0.035,
-                "RobotoCondensed"
-            ];
-        } forEach _terrainVertices;
+        drawIcon3D [
+            "",
+            _color,
+            ASLToAGL (_terrainCenter vectorAdd [0, 0, PREVIEW_TEXT_HEIGHT]),
+            0,
+            0,
+            0,
+            format ["-%1 m", _terrainDepth toFixed 2],
+            2,
+            0.035,
+            "RobotoCondensed"
+        ];
     };
 
     // Cancel if the helper object is gone

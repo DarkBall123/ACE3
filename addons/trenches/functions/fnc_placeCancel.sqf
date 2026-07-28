@@ -26,6 +26,8 @@ if (_key != 1 || {GVAR(digPFH) == -1}) exitWith {};
 
 // delete placement dummy
 deleteVehicle GVAR(trench);
+deleteVehicle GVAR(terrainPreview);
+GVAR(terrainPreview) = [];
 
 // remove digment pfh
 [GVAR(digPFH)] call CBA_fnc_removePerFrameHandler;
