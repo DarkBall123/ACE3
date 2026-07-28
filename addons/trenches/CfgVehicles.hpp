@@ -135,14 +135,12 @@ class CfgVehicles {
         GVAR(diggingDuration) = QGVAR(smallEnvelopeDigDuration);
         GVAR(removalDuration) = QGVAR(smallEnvelopeRemoveDuration);
         GVAR(terrainDepth) = 1;
-        GVAR(grassCuttingPoints)[] = {{0, 0, 0}};
     };
     class ACE_TerrainTrench_Big: ACE_TerrainTrench_Base {
         displayName = CSTRING(EnvelopeBigName);
         GVAR(diggingDuration) = QGVAR(bigEnvelopeDigDuration);
         GVAR(removalDuration) = QGVAR(bigEnvelopeRemoveDuration);
         GVAR(terrainDepth) = 1.5;
-        GVAR(grassCuttingPoints)[] = {{0, -1.5, 0}, {0, 1.5, 0}};
     };
 
     class Box_NATO_Support_F;

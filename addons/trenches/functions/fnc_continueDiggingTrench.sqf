@@ -75,10 +75,8 @@ private _fnc_condition = {
 };
 [(_digTimeLeft + 0.5), [_unit, _trench], _fnc_onFinish, _fnc_onFailure, localize LSTRING(DiggingTrench), _fnc_condition] call EFUNC(common,progressBar);
 
-if(_actualProgress == 0) then {
-    if !(_trench isKindOf "ACE_TerrainTrench_Base") then {
-        [_unit, _trench, _trenchId, _basePos vectorDiff [0, 0, 1.0], _vecDirAndUp, _actualProgress] call FUNC(setTrenchPlacement);
-    };
+if (_actualProgress == 0 && {!(_trench isKindOf "ACE_TerrainTrench_Base")}) then {
+    [_unit, _trench, _trenchId, _basePos vectorDiff [0, 0, 1.0], _vecDirAndUp, _actualProgress] call FUNC(setTrenchPlacement);
 
     //Remove grass
     {

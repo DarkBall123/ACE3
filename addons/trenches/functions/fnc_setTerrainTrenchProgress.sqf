@@ -35,3 +35,43 @@ private _terrainData = _terrainHeights apply {
 TRACE_3("set terrain trench progress",_trench,_progress,_terrainData);
 setTerrainHeight [_terrainData, false];
 _trench setVariable [QGVAR(progress), _progress, true];
+
+private _grassCutters = (_trench getVariable [QGVAR(grassCutters), []]) select {!isNull _x};
+getTerrainInfo params ["", "", "_cellSize"];
+private _cutterScale = _cellSize / 3.75;
+
+if (_progress > 0 && {_grassCutters isEqualTo []}) then {
+    private _terrainCells = [];
+    {
+        _x params ["_vertexX", "_vertexY"];
+        _terrainCells pushBackUnique [_vertexX - _cellSize, _vertexY - _cellSize];
+        _terrainCells pushBackUnique [_vertexX, _vertexY - _cellSize];
+        _terrainCells pushBackUnique [_vertexX - _cellSize, _vertexY];
+        _terrainCells pushBackUnique [_vertexX, _vertexY];
+    } forEach _terrainHeights;
+
+    {
+        _x params ["_cellX", "_cellY"];
+        private _cutterPos = [
+            _cellX + _cellSize / 2,
+            _cellY + _cellSize / 2,
+            0
+        ];
+        _cutterPos set [2, getTerrainHeightASL _cutterPos];
+
+        private _grassCutter = createSimpleObject ["Land_ClutterCutter_medium_F", _cutterPos];
+        _grassCutter setVectorUp (surfaceNormal _cutterPos);
+        _grassCutter setObjectScale _cutterScale;
+        _grassCutters pushBack _grassCutter;
+    } forEach _terrainCells;
+
+    _trench setVariable [QGVAR(grassCutters), _grassCutters];
+};
+
+{
+    private _cutterPos = getPosASL _x;
+    _cutterPos set [2, getTerrainHeightASL _cutterPos];
+    _x setPosASL _cutterPos;
+    _x setVectorUp (surfaceNormal _cutterPos);
+    _x setObjectScale _cutterScale;
+} forEach _grassCutters;

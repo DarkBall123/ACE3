@@ -47,6 +47,7 @@ private _fnc_onFinish = {
     _unit setVariable [QGVAR(isDiggingId), -1, true];
 
     // Remove trench
+    deleteVehicle (_trench getVariable [QGVAR(grassCutters), []]);
     deleteVehicle _trench;
 
     // Reset animation
